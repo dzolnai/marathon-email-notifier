@@ -6,5 +6,6 @@ scalaVersion := "2.10.6"
 
 // Dependencies required for this project
 libraryDependencies ++= Seq(
-  "com.twitter" %% "util-zk" % "6.34.0"
+  "org.apache.zookeeper" % "zookeeper" % "3.4.8",
+  "com.github.scopt" %% "scopt" % "3.5.0"
 )

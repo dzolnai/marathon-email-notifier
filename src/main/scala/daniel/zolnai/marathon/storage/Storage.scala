@@ -1,4 +1,4 @@
-package com.egeniq.marathon.storage
+package daniel.zolnai.marathon.storage
 
 /**
   * Interface for saving and restoring application contents.

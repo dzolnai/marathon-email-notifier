@@ -1,4 +1,4 @@
-package com.egeniq.marathon.storage
+package daniel.zolnai.marathon.storage
 
 /**
   * Implementation of the storage interface with the local file system storage as the medium.

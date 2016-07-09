@@ -1,6 +1,6 @@
-package com.egeniq.marathon
+package daniel.zolnai.marathon
 
-import com.egeniq.marathon.entity.Param
+import daniel.zolnai.marathon.entity.Param
 
 /**
   * Main application.
@@ -50,6 +50,7 @@ object MarathonEmailNotifier {
 
   /**
     * Validates the configuration provided by the user.
+ *
     * @param config The parsed configuration.
     */
   private def _validateConfig(config: Config) = {

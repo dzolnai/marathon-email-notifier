@@ -1,4 +1,4 @@
-package com.egeniq.marathon.entity
+package daniel.zolnai.marathon.entity
 
 /**
   * Representation of a configuration parameter.

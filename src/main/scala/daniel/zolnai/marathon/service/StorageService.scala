@@ -1,7 +1,8 @@
-package com.egeniq.marathon.service
+package daniel.zolnai.marathon.service
 
-import com.egeniq.marathon.MarathonEmailNotifier.Config
-import com.egeniq.marathon.storage.{LocalStorage, Storage, ZookeeperStorage}
+import daniel.zolnai.marathon.MarathonEmailNotifier.Config
+import daniel.zolnai.marathon.storage.{LocalStorage, Storage, ZookeeperStorage}
+
 
 /**
   * Service provider which is responsible for handling the saving and restoring of application state and configuration.

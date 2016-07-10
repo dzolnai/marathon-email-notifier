@@ -18,7 +18,7 @@ class ZooKeeperService(zooKeeperUrl: String, zooKeeperPath: String) {
 
 
   def becomeLeader() = {
-    // TODO activate ourselves
+    // TODO activate emailing
   }
 
   def watchNode(path: String) = {

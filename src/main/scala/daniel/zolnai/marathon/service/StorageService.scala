@@ -10,7 +10,7 @@ import daniel.zolnai.marathon.storage.{LocalStorage, Storage, ZookeeperStorage}
   */
 class StorageService(val config: Config) {
 
-  private def _storage: Storage = {
+  private val _storage: Storage = {
     if (config.zookeeperUrl.isDefined) {
       new ZookeeperStorage(config.zookeeperUrl.get)
     } else {

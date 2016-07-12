@@ -3,13 +3,12 @@ package daniel.zolnai.marathon.service
 import daniel.zolnai.marathon.TestSuite
 import org.apache.zookeeper.KeeperException
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mock.MockitoSugar
 
 /**
   * Test which checks the ZooKeeper service functionality.
   * Created by Daniel Zolnai on 2016-07-10.
   */
-class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll with MockitoSugar {
+class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
 
   override def beforeAll() {
     _startZooKeeperServer()

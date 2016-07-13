@@ -14,6 +14,9 @@ import scala.collection.JavaConverters._
 class ConfigService() {
   private val KEY_ROOT = "marathon-email-notifier"
   private val KEY_CONFIGURATION_PROTOCOL_VERSION = s"$KEY_ROOT.configuration-protocol-version"
+  private val KEY_ZOOKEEPER_URL = s"$KEY_ROOT.zookeeper-url"
+  private val KEY_MARATHON_URL = s"$KEY_ROOT.marathon-url"
+  private val KEY_LOCAL_DIRECTORY = s"$KEY_ROOT.local-directory"
   private val KEY_EMAIL_HOST = s"$KEY_ROOT.email.host"
   private val KEY_EMAIL_PORT = s"$KEY_ROOT.email.port"
   private val KEY_EMAIL_USERNAME = s"$KEY_ROOT.email.username"
@@ -30,16 +33,7 @@ class ConfigService() {
   private val DEFAULT_SENDER = "Marathon Email Notifier <$MEN_HOSTNAME>"
   private val DEFAULT_SUBJECT = "Marathon app has failed: $MEN_APPLICATION_NAME"
 
-  val _appConfig = _parseConfig(ConfigFactory.load().resolve())
-
-
-  /**
-    * Returns the current app config.
-    *
-    * @return The application config.
-    */
-  def getAppConfig: AppConfig = _appConfig
-
+  val appConfig = _parseConfig(ConfigFactory.load().resolve())
 
   /**
     * Config parser for the 1st version of the protocol.
@@ -48,6 +42,17 @@ class ConfigService() {
     * @return The processed application config.
     */
   def _parseV1Config(config: Config): AppConfig = {
+    // Zookeeper config
+    var zooKeeperURL: Option[String] = None
+    if (config.hasPath(KEY_ZOOKEEPER_URL)) {
+      zooKeeperURL = Some(config.getString(KEY_ZOOKEEPER_URL))
+    }
+    val marathonURL = config.getString(KEY_MARATHON_URL)
+    // Local directory config
+    var localDirectory: Option[String] = None
+    if (config.hasPath(KEY_LOCAL_DIRECTORY)) {
+      localDirectory = Some(config.getString(KEY_LOCAL_DIRECTORY))
+    }
     // Configuration for email
     val host = config.getString(KEY_EMAIL_HOST)
     val port = config.getInt(KEY_EMAIL_PORT)
@@ -92,7 +97,8 @@ class ConfigService() {
       }
       triggers += trigger
     }
-    new AppConfig(emailConfig, triggers.toList)
+    AppConfig(zooKeeperURL, marathonURL,
+      localDirectory, emailConfig, triggers.toList)
   }
 
   /**

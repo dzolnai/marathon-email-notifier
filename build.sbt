@@ -15,5 +15,8 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire" %% "macros" % "2.2.3" % "provided",
   "com.softwaremill.macwire" %% "util" % "2.2.3",
   "com.softwaremill.macwire" %% "proxy" % "2.2.3",
+  "org.http4s" %% "http4s-dsl" % "0.14.1",
+  "org.http4s" %% "http4s-blaze-client" % "0.14.1",
+  "org.http4s" %% "http4s-blaze-server" % "0.14.1" % "test",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 )

@@ -1,6 +1,7 @@
 package daniel.zolnai.marathon.service
 
 import daniel.zolnai.marathon.TestSuite
+import daniel.zolnai.marathon.entity.AppConfig
 import org.apache.zookeeper.KeeperException
 import org.scalatest.BeforeAndAfterAll
 
@@ -18,9 +19,18 @@ class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
     _stopZooKeeperServer()
   }
 
+  private def _generateZkService(rootNode: String): ZooKeeperService = {
+    val configService = new ConfigService() {
+      override val appConfig = AppConfig(Some(_getZooKeeperUrl() + rootNode), null, None, null, null)
+    }
+    val zooKeeperService = new ZooKeeperService(configService)
+    zooKeeperService.connectIfRequired()
+    zooKeeperService
+  }
+
   test("testCreateNode") {
+    val zooKeeperService = _generateZkService("/node_create_test")
     val nodeToCreate = "/node_create_test/testdir"
-    val zooKeeperService = new ZooKeeperService(_getZooKeeperUrl(), "/node_create_test")
     // Should not exist before we created it
     assert(!zooKeeperService.nodeExists(nodeToCreate))
     zooKeeperService.createNode(nodeToCreate, ephemeral = false)
@@ -29,8 +39,8 @@ class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
   }
 
   test("testListChildren") {
+    val zooKeeperService = _generateZkService("/node_children_test")
     val nodeToCheck = "/node_children_test/testdir"
-    val zooKeeperService = new ZooKeeperService(_getZooKeeperUrl(), "/node_children_test")
     // Path does not exist, should throw an exception
     intercept[KeeperException] {
       zooKeeperService.listChildren(nodeToCheck)
@@ -50,17 +60,20 @@ class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
     // So Mockito can not detect it, because when we give to object to spy, it has already executed the method.
     // So instead, we override the method to throw an exception, which will be catched during the test.
     class TestException extends Exception("This service became the leader!")
-    class TestZooKeeperService extends ZooKeeperService(zooKeeperUrl = _getZooKeeperUrl(), zooKeeperPath = "/leader_test") {
+    val configService = new ConfigService() {
+      override val appConfig = AppConfig(Some(_getZooKeeperUrl() + "/leader_test"), null, None, null, null)
+    }
+    class TestZooKeeperService extends ZooKeeperService(configService) {
       override def becomeLeader() {
         throw new TestException()
       }
     }
     // First service should throw an exception.
     intercept[TestException] {
-      new TestZooKeeperService
+      new TestZooKeeperService().connectIfRequired()
     }
     // Second service should not throw an exception, because it is not the leader.
-    new TestZooKeeperService
+    new TestZooKeeperService().connectIfRequired()
   }
 
 }

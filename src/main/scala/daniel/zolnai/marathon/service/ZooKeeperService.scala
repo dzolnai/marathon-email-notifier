@@ -10,41 +10,70 @@ import scala.collection.JavaConverters._
   * Service which is responsible for all the communication with ZooKeeper.
   * Created by Daniel Zolnai on 2016-07-09.
   */
-class ZooKeeperService(zooKeeperUrl: String, zooKeeperPath: String) {
+class ZooKeeperService(configService: ConfigService) {
 
-  val _watcher = new NodeWatcher(this, zooKeeperPath)
-  val _zkClient = new ZooKeeper(zooKeeperUrl, 3000, _watcher)
-  _watcher.init()
+  val enabled = configService.appConfig.zooKeeperURL.isDefined
 
+  private var _zooKeeperUrl: String = _
+  private var _zooKeeperPath: String = _
+  private var _watcher: NodeWatcher = _
+  private var _zooKeeperClient: ZooKeeper = _
+
+  /**
+    * Connects ZooKeeper to the cluster, and starts monitoring if it can become a leader.
+    * @return True if the connection happened, false if the application is not running in HA mode.
+    */
+  def connectIfRequired() : Boolean = {
+    if (enabled) {
+      splitPathFromZooKeeperUrl(configService.appConfig.zooKeeperURL.get) match {
+        case (zooKeeperUrl, zooKeeperPath) => _zooKeeperUrl = zooKeeperUrl; _zooKeeperPath = zooKeeperPath
+        case _ =>
+      }
+      _watcher = new NodeWatcher(this, _zooKeeperPath)
+      _zooKeeperClient = new ZooKeeper(_zooKeeperUrl, 3000, _watcher)
+      _watcher.init()
+    }
+    enabled
+  }
+
+
+  def splitPathFromZooKeeperUrl(zookeeperUrlWithPath: String): (String, String) = {
+    if (zookeeperUrlWithPath.indexOf("/") > 0) {
+      val splitAt = zookeeperUrlWithPath.indexOf("/")
+      zookeeperUrlWithPath.splitAt(splitAt)
+    } else {
+      (zookeeperUrlWithPath, "/")
+    }
+  }
 
   def becomeLeader() = {
     // TODO activate emailing and subscribe to the stream
   }
 
   def watchNode(path: String) = {
-    val nodeStat = _zkClient.exists(path, _watcher)
+    val nodeStat = _zooKeeperClient.exists(path, _watcher)
     if (nodeStat == null) {
       throw new IllegalStateException("Unable to monitor node path!")
     }
   }
 
   def createNode(path: String, ephemeral: Boolean): String = {
-    val nodeStat = _zkClient.exists(path, false)
+    val nodeStat = _zooKeeperClient.exists(path, false)
     val createMode = if (ephemeral) CreateMode.EPHEMERAL_SEQUENTIAL else CreateMode.PERSISTENT
     if (nodeStat == null) {
-      _zkClient.create(path, new Array[Byte](0), Ids.OPEN_ACL_UNSAFE, createMode)
+      _zooKeeperClient.create(path, new Array[Byte](0), Ids.OPEN_ACL_UNSAFE, createMode)
     } else {
       path
     }
   }
 
   def nodeExists(path: String): Boolean = {
-    val nodeStat = _zkClient.exists(path, false)
+    val nodeStat = _zooKeeperClient.exists(path, false)
     nodeStat != null
   }
 
   def listChildren(path: String): List[String] = {
-    _zkClient.getChildren(path, false).asScala.sorted.toList
+    _zooKeeperClient.getChildren(path, false).asScala.sorted.toList
   }
 
 }

@@ -9,7 +9,10 @@ import daniel.zolnai.marathon.TestSuite
 class ConfigServiceTest extends TestSuite {
 
   test("parseExampleConfig") {
-    val appConfig = new ConfigService().getAppConfig
+    val appConfig = new ConfigService().appConfig
+    assert(appConfig.zooKeeperURL.contains("localhost:2181/marathon-email-notifier"))
+    assert(appConfig.marathonURL.contains("localhost:8080/"))
+    assert(appConfig.localDirectory.isEmpty)
     assert(appConfig.emailConfig.host == "localhost")
     assert(appConfig.emailConfig.port == 25)
     assert(appConfig.emailConfig.password.contains("pa55word"))

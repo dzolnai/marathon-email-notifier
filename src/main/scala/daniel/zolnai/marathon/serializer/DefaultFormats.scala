@@ -1,5 +1,6 @@
 package daniel.zolnai.marathon.serializer
 
+import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
 import org.joda.time.DateTime
@@ -15,13 +16,12 @@ import scala.util.Try
 class DefaultFormats extends org.json4s.DefaultFormats {
   override val emptyValueStrategy: EmptyValueStrategy = EmptyValueStrategy.preserve
 
-  override val customSerializers: List[Serializer[_]] = List(new MarathonEventSerializer())
+  override val customSerializers: List[Serializer[_]] = List(new MarathonEventSerializer(), new DateTimeSerializer())
+
 
   override val dateFormat = new DateFormat {
     def parse(date: String) = Try(DateTime.parse(date).toDate).toOption
 
     def format(date: Date) = dateFormatter.format(date)
-
-    override def timezone: TimeZone = TimeZone.getTimeZone("UTC")
   }
 }

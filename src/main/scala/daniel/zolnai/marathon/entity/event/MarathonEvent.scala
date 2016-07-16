@@ -16,7 +16,7 @@ object MarathonEvent {
 
 }
 
-abstract class MarathonEvent {
+class MarathonEvent {
   var eventType: EventType = _
   var timestamp: DateTime = _
 }

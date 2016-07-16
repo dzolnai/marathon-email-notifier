@@ -26,11 +26,13 @@ class MarathonEventSerializer extends CustomSerializer[MarathonEvent](format => 
     }
     if (eventType == MarathonEvent.EventType.EVENT_STREAM_ATTACHED) {
       val marathonEvent = new EventStreamAttachedEvent()
+      marathonEvent.eventType = eventType
       marathonEvent.remoteAddress = (json \ "remoteAddress").extract[String]
       marathonEvent.timestamp = (json \ "timestamp").extract[DateTime]
       marathonEvent
     } else if (eventType == MarathonEvent.EventType.STATUS_UPDATE_EVENT) {
       val marathonEvent = new StatusUpdateEvent()
+      marathonEvent.eventType = eventType
       marathonEvent.timestamp = (json \ "timestamp").extract[DateTime]
       marathonEvent.appId = (json \ "appId").extract[String]
       marathonEvent.host = (json \ "host").extract[String]
@@ -53,8 +55,20 @@ class MarathonEventSerializer extends CustomSerializer[MarathonEvent](format => 
 }, {
   case marathonEvent: MarathonEvent =>
     implicit val formats = format
-    val result = ("timestamp" -> marathonEvent.timestamp.toString()) ~
-      ("eventType" -> marathonEvent.eventType.toString)
+    var result = ("timestamp" -> marathonEvent.timestamp.toString()) ~
+      ("eventType" -> marathonEvent.eventType.toString.toLowerCase())
+    if (marathonEvent.eventType == MarathonEvent.EventType.EVENT_STREAM_ATTACHED) {
+      val eventStreamAttachedEvent = marathonEvent.asInstanceOf[EventStreamAttachedEvent]
+      result = result ~ ("remoteAddress" -> eventStreamAttachedEvent.remoteAddress)
+    } else if (marathonEvent.eventType == MarathonEvent.EventType.STATUS_UPDATE_EVENT) {
+      val statusUpdateEvent = marathonEvent.asInstanceOf[StatusUpdateEvent]
+      result = result ~ ("taskStatus" -> statusUpdateEvent.taskStatus.toString.toLowerCase) ~
+        ("version" -> statusUpdateEvent.version) ~
+        ("taskId" -> statusUpdateEvent.taskId) ~
+        ("ports" -> statusUpdateEvent.ports) ~
+        ("appId" -> statusUpdateEvent.appId) ~
+        ("host" -> statusUpdateEvent.host) ~
+        ("message" -> statusUpdateEvent.message)
+    }
     result
-    // TODO continue
 }))

@@ -1,6 +1,7 @@
 package daniel.zolnai.marathon.service
 
 import daniel.zolnai.marathon.entity.AppConfig
+import daniel.zolnai.marathon.serializer.DefaultFormats
 import daniel.zolnai.marathon.{EventStreamServer, TestSuite}
 
 /**
@@ -13,8 +14,12 @@ class MarathonServiceTest extends TestSuite {
     val configService = new ConfigService {
       override val appConfig = AppConfig(None, "localhost:8080/", Some("target/"), null, null)
     }
-    val marathonService = new MarathonService(configService)
+    val zooKeeperService = new ZooKeeperService(configService)
+    val storageService = new StorageService(configService, zooKeeperService)
+    val historyService = new HistoryService(storageService)
+    val marathonService = new MarathonService(configService, historyService, new DefaultFormats)
     val server = new EventStreamServer()
+    server.setEventsToEmit(_getExampleEvents())
     server.start()
     marathonService.connect()
   }

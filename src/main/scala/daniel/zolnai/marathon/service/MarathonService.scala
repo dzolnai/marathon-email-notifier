@@ -5,6 +5,7 @@ import daniel.zolnai.marathon.serializer.DefaultFormats
 import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.{Uri, _}
 import org.json4s.native.JsonMethods._
+import org.slf4j.{Logger, LoggerFactory}
 
 
 /**
@@ -15,7 +16,11 @@ object MarathonService {
   final val EVENT_STREAM_API_ENDPOINT = "/v2/events"
 }
 
-class MarathonService(configService: ConfigService, implicit val formats: DefaultFormats) {
+class MarathonService(configService: ConfigService,
+                      historyService: HistoryService,
+                      implicit val formats: DefaultFormats) {
+
+  private val _logger: Logger = LoggerFactory.getLogger(classOf[MarathonService])
 
   def connect() = {
     val client = PooledHttp1Client()
@@ -39,9 +44,14 @@ class MarathonService(configService: ConfigService, implicit val formats: Defaul
     *
     * @param body The string body received from the streaming server.
     */
-  def parseAndProcessEvent(body: String) = {
+  def parseAndProcessEvent(body: String) : Unit = {
+    if (body.isEmpty) {
+      // Last body is empty
+      return
+    }
+    _logger.debug(s"Received HTTP body from Marathon: $body")
     val marathonEvent = parse(body).extract[MarathonEvent]
-    // TODO notify history service
+    historyService.newEvent(marathonEvent)
   }
 
   /**

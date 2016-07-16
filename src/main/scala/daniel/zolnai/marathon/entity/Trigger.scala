@@ -10,6 +10,7 @@ class Trigger() {
   final val NO_MIN_FAILURES = 0
   final val NO_EMAIL_SUSPEND = 0
 
+  var id: String = _
   var windowSeconds: Long = NO_WINDOWING
   var minFailures: Long = NO_MIN_FAILURES
   var suspendEmailsForSeconds: Long = NO_EMAIL_SUSPEND

@@ -13,7 +13,6 @@ import org.json4s.JsonDSL._
   * Created by Daniel Zolnai on 2016-07-14.
   */
 class MarathonEventSerializer extends CustomSerializer[MarathonEvent](format => ( {
-
   case json: JValue =>
     // Deserialization only used for reading from Kafka for unit tests
     implicit val formats = format
@@ -41,10 +40,10 @@ class MarathonEventSerializer extends CustomSerializer[MarathonEvent](format => 
       marathonEvent.taskId = (json \ "taskId").extract[String]
       marathonEvent.version = (json \ "version").extract[String]
       val taskStatusString = (json \ "taskStatus").extract[String]
-      var status : Status = null
+      var status: Status = null
       if (taskStatusString == "TASK_RUNNING") {
         status = StatusUpdateEvent.Status.TASK_RUNNING
-      } else if (taskStatusString == "TASK_FAILED"){
+      } else if (taskStatusString == "TASK_FAILED") {
         status = StatusUpdateEvent.Status.TASK_FAILED
       }
       marathonEvent.taskStatus = status

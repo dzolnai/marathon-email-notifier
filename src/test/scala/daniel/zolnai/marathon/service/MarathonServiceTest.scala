@@ -14,10 +14,11 @@ class MarathonServiceTest extends TestSuite {
     val configService = new ConfigService {
       override val appConfig = AppConfig(None, "localhost:8080/", Some("target/"), null, null)
     }
+    val defaultFormats = new DefaultFormats
     val zooKeeperService = new ZooKeeperService(configService)
     val storageService = new StorageService(configService, zooKeeperService)
-    val historyService = new HistoryService(storageService)
-    val marathonService = new MarathonService(configService, historyService, new DefaultFormats)
+    val historyService = new HistoryService(storageService, defaultFormats)
+    val marathonService = new MarathonService(configService, historyService, defaultFormats)
     val server = new EventStreamServer()
     server.setEventsToEmit(_getExampleEvents())
     server.start()

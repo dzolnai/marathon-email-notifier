@@ -24,6 +24,8 @@ class ConfigService() {
   private val KEY_EMAIL_SENDER = s"$KEY_ROOT.email.sender"
   private val KEY_EMAIL_SUBJECT = s"$KEY_ROOT.email.subject"
   private val KEY_TRIGGERS = s"$KEY_ROOT.triggers"
+
+  private val KEY_TRIGGER_ID = "id"
   private val KEY_TRIGGER_WINDOW_SECONDS = "window-seconds"
   private val KEY_TRIGGER_MIN_FAILURES = "min-failures"
   private val KEY_TRIGGER_SUSPEND_EMAILS_FOR_SECONDS = "suspend-emails-for-seconds"
@@ -80,6 +82,7 @@ class ConfigService() {
     for (i <- 0 until triggerCount) {
       val triggerConfig = triggersList.get(i)
       val trigger = new Trigger()
+      trigger.id = triggerConfig.getString(KEY_TRIGGER_ID)
       if (triggerConfig.hasPath(KEY_TRIGGER_WINDOW_SECONDS)) {
         trigger.windowSeconds = triggerConfig.getLong(KEY_TRIGGER_WINDOW_SECONDS)
       }

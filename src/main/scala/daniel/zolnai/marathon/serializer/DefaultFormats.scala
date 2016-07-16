@@ -1,7 +1,6 @@
 package daniel.zolnai.marathon.serializer
 
-import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.Date
 
 import org.joda.time.DateTime
 import org.json4s.prefs.EmptyValueStrategy
@@ -16,8 +15,8 @@ import scala.util.Try
 class DefaultFormats extends org.json4s.DefaultFormats {
   override val emptyValueStrategy: EmptyValueStrategy = EmptyValueStrategy.preserve
 
-  override val customSerializers: List[Serializer[_]] = List(new MarathonEventSerializer(), new DateTimeSerializer())
-
+  override val customSerializers: List[Serializer[_]] = List(new MarathonEventSerializer(),
+    new DateTimeSerializer(), new HistorySerializer(), new TriggerHistorySerializer())
 
   override val dateFormat = new DateFormat {
     def parse(date: String) = Try(DateTime.parse(date).toDate).toOption

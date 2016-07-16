@@ -37,7 +37,7 @@ class EventStreamServer {
 
   def dataStream(): Process[Task, String] = {
     implicit def defaultScheduler = DefaultTimeoutScheduler
-    val interval = 500.milliseconds
+    val interval = 200.milliseconds
     val stream: Process[Task, String] = time.awakeEvery(interval)
       .map(_ => {
         val event = _eventsToEmit.head

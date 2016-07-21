@@ -17,11 +17,13 @@ class MarathonServiceTest extends TestSuite {
     val defaultFormats = new DefaultFormats
     val zooKeeperService = new ZooKeeperService(configService)
     val storageService = new StorageService(configService, zooKeeperService)
-    val historyService = new HistoryService(storageService, defaultFormats)
+    val emailService = new EmailService(configService)
+    val historyService = new HistoryService(configService, storageService, emailService, defaultFormats)
     val marathonService = new MarathonService(configService, historyService, defaultFormats)
     val server = new EventStreamServer()
     server.setEventsToEmit(_getExampleEvents())
     server.start()
     marathonService.connect()
+    // TODO add assert
   }
 }

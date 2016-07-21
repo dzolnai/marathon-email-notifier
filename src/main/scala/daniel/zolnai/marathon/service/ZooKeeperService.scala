@@ -21,9 +21,10 @@ class ZooKeeperService(configService: ConfigService) {
 
   /**
     * Connects ZooKeeper to the cluster, and starts monitoring if it can become a leader.
+    *
     * @return True if the connection happened, false if the application is not running in HA mode.
     */
-  def connectIfRequired() : Boolean = {
+  def connectIfRequired(): Boolean = {
     if (enabled) {
       splitPathFromZooKeeperUrl(configService.appConfig.zooKeeperURL.get) match {
         case (zooKeeperUrl, zooKeeperPath) => _zooKeeperUrl = zooKeeperUrl; _zooKeeperPath = zooKeeperPath
@@ -36,7 +37,7 @@ class ZooKeeperService(configService: ConfigService) {
     enabled
   }
 
-
+  // TODO add comments here and below
   def splitPathFromZooKeeperUrl(zookeeperUrlWithPath: String): (String, String) = {
     if (zookeeperUrlWithPath.indexOf("/") > 0) {
       val splitAt = zookeeperUrlWithPath.indexOf("/")

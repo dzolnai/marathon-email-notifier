@@ -19,6 +19,9 @@ class ConfigServiceTest extends TestSuite {
     assert(appConfig.emailConfig.username.contains("admin"))
     assert(appConfig.emailConfig.sender == "Marathon QA <$MEN_HOSTNAME>")
     assert(appConfig.emailConfig.subject == "$MEN_APPLICATION_NAME application has failed in Marathon!")
+    assert(appConfig.emailConfig.sendTo == "alice@example.com")
+    assert(appConfig.emailConfig.text == "$MEN_APPLICATION_NAME has just failed!")
+    assert(appConfig.emailConfig.isSSL)
     assert(appConfig.triggers.size == 2)
     assert(appConfig.triggers.head.id.contains("frequent-failure"))
     assert(appConfig.triggers.head.windowSeconds == 120)
@@ -28,5 +31,6 @@ class ConfigServiceTest extends TestSuite {
       "Please check the configuration and logs at $MEN_APPLICATION_URL ASAP!\n" +
       "Cheers, Marathon Email Notifier"))
     assert(appConfig.triggers.head.emailSubject.contains("$MEN_APPLICATION_NAME is failing very frequently in Marathon"))
+    assert(appConfig.triggers.head.emailSendTo.contains("bob@example.com"))
   }
 }

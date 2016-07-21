@@ -9,5 +9,8 @@ case class EmailConfig(host: String,
                        sender: String,
                        username: Option[String],
                        password: Option[String],
-                       subject: String) {
+                       subject: String,
+                       sendTo: String,
+                       text: String,
+                       isSSL: Boolean) {
 }

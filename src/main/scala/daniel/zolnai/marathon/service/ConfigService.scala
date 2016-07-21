@@ -17,12 +17,17 @@ class ConfigService() {
   private val KEY_ZOOKEEPER_URL = s"$KEY_ROOT.zookeeper-url"
   private val KEY_MARATHON_URL = s"$KEY_ROOT.marathon-url"
   private val KEY_LOCAL_DIRECTORY = s"$KEY_ROOT.local-directory"
+
   private val KEY_EMAIL_HOST = s"$KEY_ROOT.email.host"
   private val KEY_EMAIL_PORT = s"$KEY_ROOT.email.port"
   private val KEY_EMAIL_USERNAME = s"$KEY_ROOT.email.username"
   private val KEY_EMAIL_PASSWORD = s"$KEY_ROOT.email.password"
   private val KEY_EMAIL_SENDER = s"$KEY_ROOT.email.sender"
   private val KEY_EMAIL_SUBJECT = s"$KEY_ROOT.email.subject"
+  private val KEY_EMAIL_SEND_TO = s"$KEY_ROOT.email.send-to"
+  private val KEY_EMAIL_TEXT = s"$KEY_ROOT.email.text"
+  private val KEY_EMAIL_IS_SSL = s"$KEY_ROOT.email.is-ssl"
+
   private val KEY_TRIGGERS = s"$KEY_ROOT.triggers"
 
   private val KEY_TRIGGER_ID = "id"
@@ -31,6 +36,7 @@ class ConfigService() {
   private val KEY_TRIGGER_SUSPEND_EMAILS_FOR_SECONDS = "suspend-emails-for-seconds"
   private val KEY_TRIGGER_EMAIL_TEXT = "email.text"
   private val KEY_TRIGGER_EMAIL_SUBJECT = "email.subject"
+  private val KEY_TRIGGER_EMAIL_SEND_TO = "email.send-to"
 
   private val DEFAULT_SENDER = "Marathon Email Notifier <$MEN_HOSTNAME>"
   private val DEFAULT_SUBJECT = "Marathon app has failed: $MEN_APPLICATION_NAME"
@@ -74,7 +80,14 @@ class ConfigService() {
     if (config.hasPath(KEY_EMAIL_PASSWORD)) {
       password = Some(config.getString(KEY_EMAIL_PASSWORD))
     }
-    val emailConfig = EmailConfig(host, port, sender, username, password, subject)
+    val sendTo = config.getString(KEY_EMAIL_SEND_TO)
+    val text = _getEmailText(config, KEY_EMAIL_TEXT).get
+    var isSSL = false
+    if (config.hasPath(KEY_EMAIL_IS_SSL)) {
+      isSSL = config.getBoolean(KEY_EMAIL_IS_SSL)
+    }
+    val emailConfig = EmailConfig(host, port, sender, username,
+      password, subject, sendTo, text, isSSL)
     // Triggers
     val triggersList = config.getConfigList(KEY_TRIGGERS)
     val triggerCount = triggersList.size()
@@ -97,6 +110,9 @@ class ConfigService() {
       }
       if (triggerConfig.hasPath(KEY_TRIGGER_EMAIL_SUBJECT)) {
         trigger.emailSubject = Some(triggerConfig.getString(KEY_TRIGGER_EMAIL_SUBJECT))
+      }
+      if (triggerConfig.hasPath(KEY_TRIGGER_EMAIL_SEND_TO)) {
+        trigger.emailSendTo = Some(triggerConfig.getString(KEY_TRIGGER_EMAIL_SEND_TO))
       }
       triggers += trigger
     }

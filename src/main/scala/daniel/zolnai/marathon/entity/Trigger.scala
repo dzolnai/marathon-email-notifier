@@ -7,15 +7,15 @@ package daniel.zolnai.marathon.entity
 class Trigger() {
 
   final val NO_WINDOWING = 0
-  final val NO_MIN_FAILURES = 0
   final val NO_EMAIL_SUSPEND = 0
 
   var id: String = _
   var windowSeconds: Long = NO_WINDOWING
-  var minFailures: Long = NO_MIN_FAILURES
+  var minFailures: Long = 1
   var suspendEmailsForSeconds: Long = NO_EMAIL_SUSPEND
 
   // Custom email related properties, which can override the global properties if defined
   var emailText: Option[String] = None
   var emailSubject: Option[String] = None
+  var emailSendTo: Option[String] = None
 }

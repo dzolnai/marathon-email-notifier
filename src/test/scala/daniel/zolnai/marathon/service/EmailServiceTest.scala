@@ -26,7 +26,7 @@ class EmailServiceTest extends TestSuite {
     val emailService = new EmailService(configService)
     // Test only the default values
     val trigger1 = new Trigger()
-    emailService.sendEmail(trigger1)
+    emailService.sendEmail(trigger1, null)
     var emails = fakeSmtpServer.getReceivedEmails.asScala
     assert(emails.length == 1)
     var email = emails.head
@@ -39,7 +39,7 @@ class EmailServiceTest extends TestSuite {
     trigger2.emailSendTo = Some("charlie@example.com")
     trigger2.emailSubject = Some("Different subject")
     trigger2.emailText = Some("Different text")
-    emailService.sendEmail(trigger2)
+    emailService.sendEmail(trigger2, null)
     emails = fakeSmtpServer.getReceivedEmails.asScala
     assert(emails.length == 1)
     email = emails.head

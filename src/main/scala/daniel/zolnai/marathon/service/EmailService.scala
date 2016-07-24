@@ -1,6 +1,8 @@
 package daniel.zolnai.marathon.service
 
-import daniel.zolnai.marathon.entity.Trigger
+import java.net.InetAddress
+
+import daniel.zolnai.marathon.entity.{Trigger, TriggerHistory}
 import org.apache.commons.mail.SimpleEmail
 import org.apache.log4j.Logger
 
@@ -12,6 +14,11 @@ class EmailService(configService: ConfigService) {
 
   private val _logger = Logger.getLogger(this.getClass.getName)
 
+  private val KEY_APPLICATION_NAME = "$MEN_APPLICATION_NAME"
+  private val KEY_HOSTNAME = "$MEN_HOSTNAME"
+  private val KEY_APPLICATION_URL = "$MEN_APPLICATION_URL"
+
+
   private def _emailConfig = configService.appConfig.emailConfig
 
   /**
@@ -19,7 +26,7 @@ class EmailService(configService: ConfigService) {
     *
     * @param trigger The trigger which has been fired. Might contain overrides for some of the email parameters.
     */
-  def sendEmail(trigger: Trigger) = {
+  def sendEmail(trigger: Trigger, triggerHistory: TriggerHistory) = {
     val sendTo = if (trigger.emailSendTo.isDefined) {
       trigger.emailSendTo.get
     } else {
@@ -37,8 +44,8 @@ class EmailService(configService: ConfigService) {
       _emailConfig.text
     }
     // Do the enrichment
-    text = _enrich(text)
-    subject = _enrich(subject)
+    text = _enrich(text, trigger, triggerHistory)
+    subject = _enrich(subject, trigger, triggerHistory)
     _sendEmailMessage(sendToList, subject, text)
   }
 
@@ -48,9 +55,23 @@ class EmailService(configService: ConfigService) {
     * @param text The text to replace the variables in.
     * @return The text which contains the values.
     */
-  def _enrich(text: String): String = {
-    // TODO
-    text
+  def _enrich(text: String, trigger: Trigger, triggerHistory: TriggerHistory): String = {
+    var enriched = text
+    if (enriched.contains(KEY_APPLICATION_NAME)) {
+      enriched = enriched.replace(KEY_APPLICATION_NAME, triggerHistory.appId)
+    }
+    if (enriched.contains(KEY_HOSTNAME)) {
+      val hostname = InetAddress.getLocalHost.getHostName
+      enriched = enriched.replace(KEY_HOSTNAME, hostname)
+    }
+    if (enriched.contains(KEY_APPLICATION_URL)) {
+      val appId = triggerHistory.appId
+      val marathonURL = configService.appConfig.marathonURL
+      val appURL = marathonURL + "/app/" + appId
+      enriched = enriched.replace(KEY_APPLICATION_URL, appURL)
+    }
+    // TODO add possibility to enrich with env variables
+    enriched
   }
 
   /**

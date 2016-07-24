@@ -47,7 +47,7 @@ class HistoryService(configService: ConfigService, storageService: StorageServic
       val triggerHistory = _getHistoryForAppAndTrigger(appId, triggerId)
       val sendEmail = triggerHistory.newEvent(statusUpdateEvent.timestamp, _triggerMap(triggerId))
       if (sendEmail) {
-        emailService.sendEmail(_triggerMap(triggerId))
+        emailService.sendEmail(_triggerMap(triggerId), triggerHistory)
       }
     }
     save()

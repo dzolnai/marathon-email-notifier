@@ -15,15 +15,21 @@ class MarathonServiceTest extends TestSuite {
       override val appConfig = AppConfig(None, "localhost:8080/", Some("target/"), null, null)
     }
     val defaultFormats = new DefaultFormats
+    val emailService = new EmailService(configService)
     val zooKeeperService = new ZooKeeperService(configService)
     val storageService = new StorageService(configService, zooKeeperService)
-    val emailService = new EmailService(configService)
-    val historyService = new HistoryService(configService, storageService, emailService, defaultFormats)
+    class TestException extends Exception("This service became the leader!")
+    val historyService = new HistoryService(configService, storageService, emailService, defaultFormats) {
+      override def newEvent(marathonEvent: daniel.zolnai.marathon.entity.event.MarathonEvent) {
+        throw new TestException()
+      }
+    }
     val marathonService = new MarathonService(configService, historyService, defaultFormats)
     val server = new EventStreamServer()
     server.setEventsToEmit(_getExampleEvents())
     server.start()
-    marathonService.connect()
-    // TODO add assert
+    intercept[TestException] {
+      marathonService.connect()
+    }
   }
 }

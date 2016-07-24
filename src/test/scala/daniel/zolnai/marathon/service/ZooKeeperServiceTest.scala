@@ -2,6 +2,7 @@ package daniel.zolnai.marathon.service
 
 import daniel.zolnai.marathon.TestSuite
 import daniel.zolnai.marathon.entity.AppConfig
+import daniel.zolnai.marathon.service.ZooKeeperService.ConnectCallback
 import org.apache.zookeeper.KeeperException
 import org.scalatest.BeforeAndAfterAll
 
@@ -24,7 +25,11 @@ class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
       override val appConfig = AppConfig(Some(_getZooKeeperUrl() + rootNode), null, None, null, null)
     }
     val zooKeeperService = new ZooKeeperService(configService)
-    zooKeeperService.connectIfRequired()
+    zooKeeperService.connectIfRequired(new ConnectCallback {
+      override def becomeLeader(): Unit = {
+        // Don't do anything.
+      }
+    })
     zooKeeperService
   }
 
@@ -63,17 +68,20 @@ class ZooKeeperServiceTest extends TestSuite with BeforeAndAfterAll {
     val configService = new ConfigService() {
       override val appConfig = AppConfig(Some(_getZooKeeperUrl() + "/leader_test"), null, None, null, null)
     }
-    class TestZooKeeperService extends ZooKeeperService(configService) {
-      override def becomeLeader() {
-        throw new TestException()
-      }
-    }
     // First service should throw an exception.
     intercept[TestException] {
-      new TestZooKeeperService().connectIfRequired()
+      new ZooKeeperService(configService).connectIfRequired(new ConnectCallback {
+        override def becomeLeader(): Unit = {
+          throw new TestException()
+        }
+      })
     }
     // Second service should not throw an exception, because it is not the leader.
-    new TestZooKeeperService().connectIfRequired()
+    new ZooKeeperService(configService).connectIfRequired(new ConnectCallback {
+      override def becomeLeader(): Unit = {
+        throw new TestException()
+      }
+    })
   }
 
 }

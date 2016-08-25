@@ -34,7 +34,7 @@ class StorageService(configService: ConfigService, zooKeeperService: ZooKeeperSe
     * @param path The relative path to the file.
     * @return The contents of the file as a string. None if the file does not exist.
     */
-  override def getFileContents(path: String): String = {
+  override def getFileContents(path: String): Option[String] = {
     _storage.getFileContents(path)
   }
 }

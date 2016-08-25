@@ -4,6 +4,7 @@ import daniel.zolnai.marathon.entity.event.MarathonEvent
 import daniel.zolnai.marathon.serializer.DefaultFormats
 import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.{Uri, _}
+import org.json4s.ParserUtil.ParseException
 import org.json4s.native.JsonMethods._
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -13,7 +14,8 @@ import org.slf4j.{Logger, LoggerFactory}
   * Created by Daniel Zolnai on 2016-07-13.
   */
 object MarathonService {
-  final val EVENT_STREAM_API_ENDPOINT = "/v2/events"
+  final val EVENT_STREAM_API_ENDPOINT = "v2/events"
+  final val EVENT_LINE_PREFIX = "data: "
 }
 
 class MarathonService(configService: ConfigService,
@@ -44,14 +46,26 @@ class MarathonService(configService: ConfigService,
     *
     * @param body The string body received from the streaming server.
     */
-  def parseAndProcessEvent(body: String) : Unit = {
-    if (body.isEmpty) {
-      // Last body is empty
-      return
-    }
+  def parseAndProcessEvent(body: String): Unit = {
+    // We are only interested in events, whose lines begin with 'data: '
     _logger.debug(s"Received HTTP body from Marathon: $body")
-    val marathonEvent = parse(body).extract[MarathonEvent]
-    historyService.newEvent(marathonEvent)
+    val lines = body.split('\n')
+    for (line <- lines) {
+      if (line.startsWith(MarathonService.EVENT_LINE_PREFIX)) {
+        val eventBody = line.replace(MarathonService.EVENT_LINE_PREFIX, "")
+        _logger.info(s"Parsing JSON event: $eventBody")
+        try {
+          val marathonEvent = parse(eventBody).extract[MarathonEvent]
+          if (marathonEvent != null) {
+            this.synchronized {
+              historyService.newEvent(marathonEvent)
+            }
+          }
+        } catch {
+          case ex: ParseException => _logger.error("Can't process event, skipping!", ex)
+        }
+      }
+    }
   }
 
   /**

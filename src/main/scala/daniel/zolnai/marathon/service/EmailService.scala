@@ -1,6 +1,6 @@
 package daniel.zolnai.marathon.service
 
-import java.net.InetAddress
+import java.net.{InetAddress, URLEncoder, UnknownHostException}
 
 import daniel.zolnai.marathon.entity.{Trigger, TriggerHistory}
 import org.apache.commons.mail.SimpleEmail
@@ -66,8 +66,18 @@ class EmailService(configService: ConfigService) {
     }
     if (enriched.contains(KEY_APPLICATION_URL)) {
       val appId = triggerHistory.appId
-      val marathonURL = configService.appConfig.marathonURL
-      val appURL = marathonURL + "/app/" + appId
+      var marathonURL = configService.appConfig.marathonURL
+      if (marathonURL.contains("localhost")) {
+        try {
+          marathonURL = marathonURL.replace("localhost", InetAddress.getLocalHost.getHostName)
+        } catch {
+          case ex: UnknownHostException => _logger.warn("Unable to determine hostname!", ex)
+        }
+      }
+      if (marathonURL.endsWith("/")) {
+        marathonURL = marathonURL.dropRight(1)
+      }
+      val appURL = marathonURL + "/ui/#/apps/" + URLEncoder.encode(appId, "UTF-8")
       enriched = enriched.replace(KEY_APPLICATION_URL, appURL)
     }
     // TODO add possibility to enrich with env variables

@@ -21,6 +21,6 @@ trait Storage {
     * @param path The relative path to the file.
     * @return The contents of the file as a string. None if the file does not exist.
     */
-  def getFileContents(path: String): String
+  def getFileContents(path: String): Option[String]
 
 }

@@ -87,10 +87,14 @@ class HistoryService(configService: ConfigService, storageService: StorageServic
     */
   def load() = {
     val contents = storageService.getFileContents(HISTORY_PATH)
-    _history = parse(contents).extract[History]
-    configService.appConfig.triggers.foreach(trigger => {
-      _triggerMap = _triggerMap + (trigger.id -> trigger)
-    })
+    if (contents.isDefined) {
+      _history = parse(contents.get).extract[History]
+      configService.appConfig.triggers.foreach(trigger => {
+        _triggerMap = _triggerMap + (trigger.id -> trigger)
+      })
+    } else {
+      _history = new History
+    }
   }
 
 

@@ -2,6 +2,7 @@ package daniel.zolnai.marathon.service
 
 import daniel.zolnai.marathon.service.ZooKeeperService.ConnectCallback
 import daniel.zolnai.marathon.zookeeper.NodeWatcher
+import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.ZooDefs.Ids
 import org.apache.zookeeper.{CreateMode, ZooKeeper}
 
@@ -12,10 +13,13 @@ import scala.collection.JavaConverters._
   * Created by Daniel Zolnai on 2016-07-09.
   */
 object ZooKeeperService {
+
   trait ConnectCallback {
     def becomeLeader()
   }
+
 }
+
 class ZooKeeperService(configService: ConfigService) {
 
   val enabled = configService.appConfig.zooKeeperURL.isDefined
@@ -117,6 +121,38 @@ class ZooKeeperService(configService: ConfigService) {
     */
   def listChildren(path: String): List[String] = {
     _zooKeeperClient.getChildren(path, false).asScala.sorted.toList
+  }
+
+  /**
+    * Reads the bytes from a path.
+    *
+    * @param path The path to the node.
+    * @return Null if the node does not exist. Otherwise the byte array contents.
+    */
+  def readFile(path: String): Option[Array[Byte]] = {
+    try {
+      Some(_zooKeeperClient.getData(path, true, _zooKeeperClient.exists(path, true)))
+    } catch {
+      case ex: NoNodeException => None
+    }
+  }
+
+  /**
+    * Saves the content bytes to the node at the given path.
+    *
+    * @param path    The path to the node.
+    * @param content The bytes to save.
+    * @return True if the file existed, false if a new file was created
+    */
+  def saveToFile(path: String, content: Array[Byte]): Boolean = {
+    val stat = _zooKeeperClient.exists(path, true)
+    if (stat != null) {
+      _zooKeeperClient.setData(path, content, stat.getVersion)
+      true
+    } else {
+      _zooKeeperClient.create(path, content, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      false
+    }
   }
 
 }

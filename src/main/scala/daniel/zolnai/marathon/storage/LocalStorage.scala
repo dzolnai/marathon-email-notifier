@@ -26,10 +26,14 @@ class LocalStorage(val workingDirectory: String) extends Storage {
     *             is '/opt/marathon-email/history'.
     * @return The contents of the file as a string.
     */
-  override def getFileContents(path: String): String = {
+  override def getFileContents(path: String): Option[String] = {
     val fullPath = _createAbsolutePath(path)
-    val encoded = Files.readAllBytes(Paths.get(fullPath))
-    new String(encoded, StandardCharsets.UTF_8)
+    try {
+      val encoded = Files.readAllBytes(Paths.get(fullPath))
+      Some(new String(encoded, StandardCharsets.UTF_8))
+    } catch {
+      case ex: Exception => None
+    }
   }
 
   def _createAbsolutePath(relativePath: String): String = {

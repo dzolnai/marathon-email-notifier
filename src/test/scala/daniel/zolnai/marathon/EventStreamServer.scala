@@ -2,6 +2,7 @@ package daniel.zolnai.marathon
 
 import daniel.zolnai.marathon.entity.event.MarathonEvent
 import daniel.zolnai.marathon.serializer.DefaultFormats
+import daniel.zolnai.marathon.service.MarathonService
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.blaze.BlazeBuilder
@@ -42,12 +43,16 @@ class EventStreamServer {
       .map(_ => {
         val event = _eventsToEmit.head
         _eventsToEmit.remove(0)
-        write(event)
+        _eventToString(event)
       })
       .take(_eventsToEmit.size - 1)
     val firstEvent = _eventsToEmit.head
     _eventsToEmit.remove(0)
-    (Process.emit(write(firstEvent)) ++ stream).asInstanceOf[Process[Task, String]]
+    (Process.emit(_eventToString(firstEvent)) ++ stream).asInstanceOf[Process[Task, String]]
+  }
+
+  def _eventToString(event: MarathonEvent): String = {
+    MarathonService.EVENT_LINE_PREFIX + write(event)
   }
 
   def setEventsToEmit(events: ListBuffer[MarathonEvent]) = {

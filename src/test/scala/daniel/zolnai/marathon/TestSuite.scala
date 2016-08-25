@@ -5,6 +5,7 @@ import java.util.Properties
 
 import daniel.zolnai.marathon.entity.event.MarathonEvent
 import daniel.zolnai.marathon.serializer.DefaultFormats
+import daniel.zolnai.marathon.service.MarathonService
 import org.scalatest.FunSuite
 import org.slf4j.{Logger, LoggerFactory}
 import org.json4s.native.JsonMethods._
@@ -77,6 +78,13 @@ class TestSuite extends FunSuite {
       line = bufferedReader.readLine()
     }
     _logger.info(s"Read ${lines.size} lines from path: $EXAMPLE_EVENTS")
-    lines.map(string => parse(string).extract[MarathonEvent])
+    lines.flatMap(eventLine => {
+      if (eventLine.startsWith(MarathonService.EVENT_LINE_PREFIX)) {
+        val eventBody = eventLine.replace(MarathonService.EVENT_LINE_PREFIX, "")
+        Array[MarathonEvent](parse(eventBody).extract[MarathonEvent])
+      } else {
+        Array[MarathonEvent]()
+      }
+    })
   }
 }
